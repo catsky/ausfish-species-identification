@@ -3,17 +3,35 @@ from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.contrib.linkextractors import LinkExtractor
 from tutorial.items import SpieceIndexItem, SpieceItem
 
+
+CRAWL_CATEGORY = {
+  'freshwater':{
+    'start_urls':['https://www.daff.qld.gov.au/fisheries/species-identification/freshwater-fish'],
+    'rules':(
+            Rule(LinkExtractor(allow=('species-identification/freshwater-fish/.*', 
+                                      'species-identification/inshore-estuarine-species/barramundi',
+                                      'species-identification/shark-identification-guide/photo-guide-to-sharks/sharks,-part-3/freshwater-sawfish',
+                                      'species-identification/inshore-estuarine-species/tropical-snappers/mangrove-jack',
+                                      'species-identification/inshore-estuarine-species/mullet/sea-mullet',
+                                      'species-identification/inshore-estuarine-species/garfish/snubnose-garfish'
+                                      )), callback='parse_item', follow= True),
+            )
+  },
+  'inshore':{
+    
+  },
+  'all':{
+    
+  }
+}
+
+selected_item = CRAWL_CATEGORY['freshwater']
 class FishSpider(CrawlSpider):
     name = "fish"
     allowed_domains = ["daff.qld.gov.au"]
-    start_urls = [
-        "https://www.daff.qld.gov.au/fisheries/species-identification/inshore-estuarine-species",
-        # "https://www.daff.qld.gov.au/fisheries/species-identification/freshwater-fish"
-    ]
+    start_urls = selected_item['start_urls']
     
-    rules = (
-            Rule(LinkExtractor(allow=('inshore-estuarine-species/.*', )), callback='parse_item', follow= True),
-            )
+    rules = selected_item['rules']
       
     # def parse_start_url(self, response):
     #   for sel in response.xpath('//*[@id="new_div_80245"]/ul/li'):
@@ -26,7 +44,8 @@ class FishSpider(CrawlSpider):
       for sel in response.xpath('//*[@id="main"]/div[3]/div[1]/div[1]'):
         item = SpieceItem()
         item['name'] = sel.xpath('//h1/text()').extract()[0]
-        item['image_url'] = sel.xpath('//*[@class="fancybox"]/@href').extract()
+        item['image_url'] = sel.xpath('//*[@class="fancybox"]/@href').extract() or \
+                            sel.xpath('//dl/dt/img/@src').extract()
         item['source_url'] = response.url
  
         # parse description items
