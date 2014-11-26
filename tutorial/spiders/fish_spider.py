@@ -18,6 +18,29 @@ CRAWL_CATEGORY = {
             )
   },
   'inshore':{
+    'start_urls':['https://www.daff.qld.gov.au/fisheries/species-identification/inshore-estuarine-species'],
+    'rules':(
+            Rule(LinkExtractor(allow=('species-identification/inshore-estuarine-species/.*', 
+                                      )), callback='parse_item', follow= True),
+            )
+    
+  },
+  'shark':{
+    'start_urls':['https://www.daff.qld.gov.au/fisheries/species-identification/shark-identification-guide/photo-guide-to-sharks',
+                 ],
+    'rules':(
+            Rule(LinkExtractor(allow=('photo-guide-to-sharks/.*', 
+                                      )), callback='parse_item', follow= True),
+            )
+    
+  },
+  'reef':{
+    'start_urls':['https://www.daff.qld.gov.au/fisheries/species-identification/reef-fish',
+                 ],
+    'rules':(
+            Rule(LinkExtractor(allow=('reef-fish/.*', 
+                                      )), callback='parse_item', follow= True),
+            )
     
   },
   'all':{
@@ -25,7 +48,7 @@ CRAWL_CATEGORY = {
   }
 }
 
-selected_item = CRAWL_CATEGORY['freshwater']
+selected_item = CRAWL_CATEGORY['reef']
 class FishSpider(CrawlSpider):
     name = "fish"
     allowed_domains = ["daff.qld.gov.au"]
@@ -45,7 +68,8 @@ class FishSpider(CrawlSpider):
         item = SpieceItem()
         item['name'] = sel.xpath('//h1/text()').extract()[0]
         item['image_url'] = sel.xpath('//*[@class="fancybox"]/@href').extract() or \
-                            sel.xpath('//dl/dt/img/@src').extract()
+                            sel.xpath('//dl/dt/img/@src').extract() or \
+                            sel.xpath('//p/img/@src').extract()
         item['source_url'] = response.url
  
         # parse description items
